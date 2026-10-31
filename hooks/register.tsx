@@ -8,8 +8,10 @@ const PONYTAIL_BAND = { plugin: 'ponytail', key: 'band' } as const
 const details = atom({ plugin: 'ponytail-compact', key: 'details' } as const, false)
 
 const LEVELS = ['off', 'lite', 'full', 'ultra']
-// shortcut: one breakpoint in cells; a graphical surface draws Buttons wider than their cells, so raise it if full labels still wrap.
-const NARROW = 100
+// Full button names whenever they fit beside this much of the metrics text.
+const MIN_METRICS = 24
+// shortcut: a graphical surface draws a Button wider than its label's cells; a guessed padding, raise it if full names still wrap there.
+const BUTTON_PAD = 3
 
 // Windows sets USERPROFILE, not HOME.
 const home = async ($: EngineInterface) => (await $.env.get('HOME')) ?? (await $.env.get('USERPROFILE'))
@@ -105,7 +107,6 @@ export const register: Register = on => {
     const below = await next(e).catch(() => undefined)
 
     const isOpen = await read($, details)
-    const narrow = e.props.bodyColumns < NARROW
     const reuse = percent(b.reused.length, b.created.length)
     const last = b.turnCosts[b.turnCosts.length - 1]
     const avg = b.turns > 0 ? b.spent / b.turns : 0
@@ -131,6 +132,11 @@ export const register: Register = on => {
         ? { key: 'details', label: 'Compact', short: '▴', hint: 'Compact · 한 줄로 접기', press: toggle }
         : { key: 'details', label: 'Details', short: '▾', hint: 'Details · 레벨 · 상세 지표 펼치기', press: toggle },
     ]
+    // Cells the row needs with full names: what leads it, room for the metrics (compact only), then the buttons.
+    const pad = e.surface === 'terminal' ? 0 : BUTTON_PAD
+    const cells = (labels: string[]) => labels.reduce((n, label) => n + label.length + pad + 1, 0)
+    const lead = isOpen ? cells(LEVELS) : `● ${b.level}`.length + 1 + MIN_METRICS
+    const narrow = e.props.bodyColumns < lead + cells(actions.map(a => a.label))
 
     const { Box, Text, Button } = $.ui.resolve(e)
 

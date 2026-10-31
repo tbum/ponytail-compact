@@ -43,12 +43,12 @@ const engine = (on: Parameters<Parameters<typeof test>[1]>[1], flag: string) => 
 test('narrow: short labels, wide: full labels, on every band surface', async ($, on) => {
   engine(on, 'off')
   for (const surface of ['terminal', 'desktop', 'vscode'] as const) {
-    const narrow = await $.ui.mount({ ...site(60), surface })
+    const narrow = await $.ui.mount({ ...site(50), surface })
     expect((await narrow.find({ key: 'review' }))?.text).toBe('Rv')
     expect((await narrow.find({ type: 'Text', text: /\$1\.50/ }))?.text).toContain('✓ 12 tests')
     await narrow.unmount()
 
-    const wide = await $.ui.mount({ ...site(140), surface })
+    const wide = await $.ui.mount({ ...site(80), surface })
     expect((await wide.find({ key: 'review' }))?.text).toBe('Review')
     await wide.unmount()
   }

@@ -1,6 +1,6 @@
 {
   "name": "ponytail-compact",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Responsive ponytail band: one row, short labels with hover hints when narrow. Shows while `/ponytail band off` hides ponytail's own.",
   "author": { "name": "tbum" },
   "license": "MIT",
