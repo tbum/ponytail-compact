@@ -1,0 +1,5 @@
+{
+  "name": "ponytail-compact",
+  "owner": { "name": "tbum" },
+  "plugins": [{ "name": "ponytail-compact", "source": "./" }]
+}
