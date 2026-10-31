@@ -40,15 +40,20 @@ const engine = (on: Parameters<Parameters<typeof test>[1]>[1], flag: string) => 
   })
 }
 
+// Columns either side of where full names start to fit: a terminal needs about 58, a graphical surface about 40.
+const WIDTHS = { terminal: [50, 60], desktop: [30, 58], vscode: [30, 58] } as const
+
 test('narrow: short labels, wide: full labels, on every band surface', async ($, on) => {
   engine(on, 'off')
   for (const surface of ['terminal', 'desktop', 'vscode'] as const) {
-    const narrow = await $.ui.mount({ ...site(50), surface })
+    const [narrowColumns, wideColumns] = WIDTHS[surface]
+    const narrow = await $.ui.mount({ ...site(narrowColumns), surface })
     expect((await narrow.find({ key: 'review' }))?.text).toBe('Rv')
     expect((await narrow.find({ type: 'Text', text: /\$1\.50/ }))?.text).toContain('✓ 12 tests')
     await narrow.unmount()
 
-    const wide = await $.ui.mount({ ...site(80), surface })
+    // 58: the width VS Code reported for a chat panel with plenty of room (2026-10-31).
+    const wide = await $.ui.mount({ ...site(wideColumns), surface })
     expect((await wide.find({ key: 'review' }))?.text).toBe('Review')
     await wide.unmount()
   }
@@ -56,7 +61,7 @@ test('narrow: short labels, wide: full labels, on every band surface', async ($,
 
 test('details opens the level row and the columns', async ($, on) => {
   engine(on, 'off')
-  const ui = await $.ui.mount({ ...site(60), surface: 'vscode' })
+  const ui = await $.ui.mount({ ...site(40), surface: 'vscode' })
   await ui.press({ key: 'details' })
   expect(await ui.find({ key: 'level-ultra' })).toBeDefined()
   expect((await ui.find({ key: 'copy' }))?.text).toBe('Cp')

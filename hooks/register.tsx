@@ -8,10 +8,12 @@ const PONYTAIL_BAND = { plugin: 'ponytail', key: 'band' } as const
 const details = atom({ plugin: 'ponytail-compact', key: 'details' } as const, false)
 
 const LEVELS = ['off', 'lite', 'full', 'ultra']
-// Full button names whenever they fit beside this much of the metrics text.
+// Full button names whenever they fit beside this many characters of the metrics text.
 const MIN_METRICS = 24
-// shortcut: a graphical surface draws a Button wider than its label's cells; a guessed padding, raise it if full names still wrap there.
-const BUTTON_PAD = 3
+// A graphical surface's cell is wider than a character of its proportional font. Measured in VS Code (2026-10-31):
+// 58 cells = 816px, so 14px a cell; text 7.4px a character; a Button's chrome 18px.
+// shortcut: one measurement, one font size; remeasure if full names wrap or abbreviate with room to spare.
+const GRAPHICAL = { char: 7.4 / 14, buttonPad: 18 / 14 }
 
 // Windows sets USERPROFILE, not HOME.
 const home = async ($: EngineInterface) => (await $.env.get('HOME')) ?? (await $.env.get('USERPROFILE'))
@@ -133,9 +135,9 @@ export const register: Register = on => {
         : { key: 'details', label: 'Details', short: '▾', hint: 'Details · 레벨 · 상세 지표 펼치기', press: toggle },
     ]
     // Cells the row needs with full names: what leads it, room for the metrics (compact only), then the buttons.
-    const pad = e.surface === 'terminal' ? 0 : BUTTON_PAD
-    const cells = (labels: string[]) => labels.reduce((n, label) => n + label.length + pad + 1, 0)
-    const lead = isOpen ? cells(LEVELS) : `● ${b.level}`.length + 1 + MIN_METRICS
+    const { char, buttonPad } = e.surface === 'terminal' ? { char: 1, buttonPad: 0 } : GRAPHICAL
+    const cells = (labels: string[]) => labels.reduce((n, label) => n + label.length * char + buttonPad + 1, 0)
+    const lead = isOpen ? cells(LEVELS) : (`● ${b.level}`.length + MIN_METRICS) * char + buttonPad + 1
     const narrow = e.props.bodyColumns < lead + cells(actions.map(a => a.label))
 
     const { Box, Text, Button } = $.ui.resolve(e)
